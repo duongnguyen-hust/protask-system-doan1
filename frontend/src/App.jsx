@@ -57,7 +57,7 @@ function App() {
       newTaskIds.splice(source.index, 1); newTaskIds.splice(destination.index, 0, draggableId);
       const newColumn = { ...startColumn, taskIds: newTaskIds };
       setData({ ...data, columns: { ...data.columns, [newColumn.id]: newColumn } });
-      axios.put('http://localhost:8000/api/kanban/update', { startColumn: newColumn, finishColumn: null }).catch(console.error);
+      axios.put('https://teamsync-api-tuei.onrender.com/api/kanban/update', { startColumn: newColumn, finishColumn: null }).catch(console.error);
       return;
     }
 
@@ -66,32 +66,32 @@ function App() {
     const finishTaskIds = Array.from(finishColumn.taskIds); finishTaskIds.splice(destination.index, 0, draggableId);
     const newFinishColumn = { ...finishColumn, taskIds: finishTaskIds };
     setData({ ...data, columns: { ...data.columns, [newStartColumn.id]: newStartColumn, [newFinishColumn.id]: newFinishColumn }});
-    axios.put('http://localhost:8000/api/kanban/update', { startColumn: newStartColumn, finishColumn: newFinishColumn }).catch(console.error);
+    axios.put('https://teamsync-api-tuei.onrender.com/api/kanban/update', { startColumn: newStartColumn, finishColumn: newFinishColumn }).catch(console.error);
   };
 
   const submitNewTask = (columnId) => {
     if (!newTaskContent.trim()) { setAddingColumnId(null); return; }
-    axios.post('http://localhost:8000/api/kanban/tasks', { content: newTaskContent, columnId }).then(() => { fetchBoardData(); setNewTaskContent(""); setAddingColumnId(null); });
+    axios.post('https://teamsync-api-tuei.onrender.com/api/kanban/tasks', { content: newTaskContent, columnId }).then(() => { fetchBoardData(); setNewTaskContent(""); setAddingColumnId(null); });
   };
   const submitNewColumn = () => {
     if (!newListTitle.trim()) { setIsAddingList(false); return; }
-    axios.post('http://localhost:8000/api/kanban/columns', { title: newListTitle }).then(() => { fetchBoardData(); setNewListTitle(""); setIsAddingList(false); });
+    axios.post('https://teamsync-api-tuei.onrender.com/api/kanban/columns', { title: newListTitle }).then(() => { fetchBoardData(); setNewListTitle(""); setIsAddingList(false); });
   };
   const handleDeleteTask = (taskId) => {
-    if (window.confirm('Xóa thẻ này vĩnh viễn?')) axios.delete(`http://localhost:8000/api/kanban/tasks/${taskId}`).then(fetchBoardData);
+    if (window.confirm('Xóa thẻ này vĩnh viễn?')) axios.delete(`https://teamsync-api-tuei.onrender.com/api/kanban/tasks/${taskId}`).then(fetchBoardData);
   };
   const handleDeleteColumn = (colId) => {
     if (window.confirm('CẢNH BÁO: Xóa cột này sẽ xóa luôn TẤT CẢ công việc bên trong nó! Bạn có chắc không?')) {
-      axios.delete(`http://localhost:8000/api/kanban/columns/${colId}`).then(fetchBoardData);
+      axios.delete(`https://teamsync-api-tuei.onrender.com/api/kanban/columns/${colId}`).then(fetchBoardData);
     }
   };
   const saveTaskEdit = (taskId) => {
     if (!editingTaskContent.trim()) return;
-    axios.put(`http://localhost:8000/api/kanban/tasks/${taskId}`, { content: editingTaskContent }).then(() => { fetchBoardData(); setEditingTaskId(null); });
+    axios.put(`https://teamsync-api-tuei.onrender.com/api/kanban/tasks/${taskId}`, { content: editingTaskContent }).then(() => { fetchBoardData(); setEditingTaskId(null); });
   };
   const saveColumnEdit = (colId) => {
     if (!editingColumnTitle.trim()) return;
-    axios.put(`http://localhost:8000/api/kanban/columns/${colId}`, { title: editingColumnTitle }).then(() => { fetchBoardData(); setEditingColumnId(null); });
+    axios.put(`https://teamsync-api-tuei.onrender.com/api/kanban/columns/${colId}`, { title: editingColumnTitle }).then(() => { fetchBoardData(); setEditingColumnId(null); });
   };
 
   const renderSmartContent = (text) => {
