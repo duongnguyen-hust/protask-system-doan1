@@ -10,12 +10,14 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// BẬT CHẾ ĐỘ SSL ĐỂ CHUI VÀO SUPABASE
 const pool = new Pool({
   host: process.env.DB_HOST,
   port: process.env.DB_PORT,
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
+  ssl: { rejectUnauthorized: false } 
 });
 
 // 1. LẤY DỮ LIỆU
@@ -40,7 +42,10 @@ app.get('/api/kanban', async (req, res) => {
       columnOrder.push(col.id);
     });
     res.json({ tasks, columns, columnOrder });
-  } catch (err) { res.status(500).json({ error: 'Lỗi Backend' }); }
+  } catch (err) { 
+    console.error("Lỗi lấy dữ liệu:", err); 
+    res.status(500).json({ error: 'Lỗi Backend' }); 
+  }
 });
 
 // 2. LƯU VỊ TRÍ KÉO THẢ
@@ -56,7 +61,10 @@ app.put('/api/kanban/update', async (req, res) => {
       }
     }
     res.json({ message: 'OK' });
-  } catch (err) { res.status(500).json({ error: 'Lỗi Backend' }); }
+  } catch (err) { 
+    console.error("Lỗi update vị trí:", err);
+    res.status(500).json({ error: 'Lỗi Backend' }); 
+  }
 });
 
 // 3. THÊM THẺ & CỘT
@@ -67,7 +75,10 @@ app.post('/api/kanban/tasks', async (req, res) => {
     const posResult = await pool.query('SELECT COALESCE(MAX(position), 0) + 1 AS next_pos FROM tasks WHERE column_id = $1', [columnId]);
     await pool.query('INSERT INTO tasks (id, content, column_id, position) VALUES ($1, $2, $3, $4)', [taskId, content, columnId, posResult.rows[0].next_pos]);
     res.json({ message: 'OK' });
-  } catch (err) { res.status(500).json({ error: 'Lỗi Backend' }); }
+  } catch (err) { 
+    console.error("Lỗi thêm thẻ:", err);
+    res.status(500).json({ error: 'Lỗi Backend' }); 
+  }
 });
 
 app.post('/api/kanban/columns', async (req, res) => {
@@ -77,7 +88,10 @@ app.post('/api/kanban/columns', async (req, res) => {
     const posResult = await pool.query('SELECT COALESCE(MAX(position), 0) + 1 AS next_pos FROM columns');
     await pool.query('INSERT INTO columns (id, title, position) VALUES ($1, $2, $3)', [colId, title, posResult.rows[0].next_pos]);
     res.json({ message: 'OK' });
-  } catch (err) { res.status(500).json({ error: 'Lỗi Backend' }); }
+  } catch (err) { 
+    console.error("Lỗi thêm cột:", err);
+    res.status(500).json({ error: 'Lỗi Backend' }); 
+  }
 });
 
 // 4. XÓA & SỬA THẺ
@@ -85,28 +99,32 @@ app.delete('/api/kanban/tasks/:id', async (req, res) => {
   try {
     await pool.query('DELETE FROM tasks WHERE id = $1', [req.params.id]);
     res.json({ message: 'OK' });
-  } catch (err) { res.status(500).json({ error: 'Lỗi Backend' }); }
+  } catch (err) { 
+    console.error("Lỗi xóa thẻ:", err);
+    res.status(500).json({ error: 'Lỗi Backend' }); 
+  }
 });
 
 app.put('/api/kanban/tasks/:id', async (req, res) => {
   try { await pool.query('UPDATE tasks SET content = $1 WHERE id = $2', [req.body.content, req.params.id]); res.json({ message: 'OK' }); } 
-  catch (err) { res.status(500).json({ error: 'Lỗi Backend' }); }
+  catch (err) { console.error("Lỗi sửa thẻ:", err); res.status(500).json({ error: 'Lỗi Backend' }); }
 });
 
-// 5. XÓA & SỬA CỘT (TÍNH NĂNG MỚI ĐÂY NÈ)
+// 5. XÓA & SỬA CỘT
 app.put('/api/kanban/columns/:id', async (req, res) => {
   try { await pool.query('UPDATE columns SET title = $1 WHERE id = $2', [req.body.title, req.params.id]); res.json({ message: 'OK' }); } 
-  catch (err) { res.status(500).json({ error: 'Lỗi Backend' }); }
+  catch (err) { console.error("Lỗi sửa cột:", err); res.status(500).json({ error: 'Lỗi Backend' }); }
 });
 
 app.delete('/api/kanban/columns/:id', async (req, res) => {
   try {
-    // BƯỚC QUAN TRỌNG: Xóa sạch rác (các thẻ công việc) nằm trong cột này trước
     await pool.query('DELETE FROM tasks WHERE column_id = $1', [req.params.id]);
-    // SAU ĐÓ: Tiêu hủy luôn cái cột
     await pool.query('DELETE FROM columns WHERE id = $1', [req.params.id]);
     res.json({ message: 'OK' });
-  } catch (err) { res.status(500).json({ error: 'Lỗi Backend' }); }
+  } catch (err) { 
+    console.error("Lỗi xóa cột:", err);
+    res.status(500).json({ error: 'Lỗi Backend' }); 
+  }
 });
 
 const PORT = process.env.PORT || 8000;
