@@ -37,7 +37,7 @@ function App() {
   const [editingColumnTitle, setEditingColumnTitle] = useState("");
 
   const fetchBoardData = () => {
-    axios.get('http://localhost:8000/api/kanban')
+    axios.get('https://teamsync-api-tuei.onrender.com/api/kanban')
       .then((res) => { setData(res.data); setLoading(false); })
       .catch((err) => console.error(err));
   };
